@@ -10,10 +10,13 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
 def main():
-    token = spotify_connect()
+    #token = spotify_connect()
     # note: Radiohead was in the example online, I did not think oh yes, Radiohead lol
-    print(get_genre_by_artist(token, 'Radiohead'))
-    print(spotify_search_song(token, 'Joni Mitchell', 'California'))
+    #print(get_genre_by_artist(token, 'Radiohead'))
+    #print(spotify_search_song(token, 'Joni Mitchell', 'California'))
+    billboard_songs("beyonce", "Drunk In Love")
+    print(web_scrape_bb("faye webster"))
+    print(web_scrape_bb("beyonce"))
 
 # global variable for valid genres in spinitron
 GENRES = ['Rock',
@@ -97,4 +100,75 @@ def spotify_search_song(sp, artist_name, song_name):
     result_string = f'the search for {song_name} by {artist_name} was not found'
     return result_string
 
+
+# function to scrape billboard site given artist name
+def web_scrape_bb(artist_name):
+    # convert artist name to - if spaces
+    artist_name = artist_name.lower()
+    artist_name = artist_name.replace(' ', '-')
+    base = 'https://www.billboard.com/artist/'
+    url = base + artist_name
+    # need to add in try/excepts for if the artist is too obscure to have a billboard page
+    page = requests.get(url)
+    if page.reason == "Not Found":
+        return 0
+    else:
+        soup = BeautifulSoup(page.content, "html.parser")
+        top_100 = soup.find_all("div", class_ ="artist-chart-history-sticky-wrapper lrv-u-position-relative")
+        #print(top_100[0].text.strip())
+        text = top_100[0].text.strip('\n').strip('\t').strip().split('\t')[0]
+        #print(text)
+        if text == "Billboard Hot 100™":
+            results = soup.find_all("span",
+                                    class_="c-span a-font-primary-bold u-font-size-34 u-line-height-120 u-letter-spacing-0063 artist-stat-3")
+            if len(results) < 1:
+                return 0
+                # print(results[0].text)
+            hits = int(results[0].text.strip())
+
+            # NOTE: currently coded to write flag or has or has not charted by artist not song
+            if hits > 1:
+                return 1
+        return 0
+
+
+
+def billboard_songs(artist_name, song_name):
+    # convert artist name to - if spaces
+    artist_name = artist_name.lower()
+    artist_name = artist_name.replace(' ', '-')
+    base = 'https://www.billboard.com/artist/'
+    url = base + artist_name
+    # need to add in try/excepts for if the artist is too obscure to have a billboard page
+    page = requests.get(url)
+    if page.reason == "Not Found":
+        return 0
+    else:
+        soup = BeautifulSoup(page.content, "html.parser")
+        results = soup.find_all("span",
+                                class_="c-span a-font-primary-bold u-font-size-34 u-line-height-120 u-letter-spacing-0063 artist-stat-3")
+        if len(results) < 1:
+            return 0
+            # print(results[0].text)
+        hits = int(results[0].text.strip())
+        if hits > 1:
+            url = url + "/chart-history/hsi"
+            page = requests.get(url)
+            soup = BeautifulSoup(page.content, "html.parser")
+            songs = soup.find_all("div", class_ ="o-chart-results-list__item // lrv-u-flex lrv-u-flex-direction-column lrv-u-flex-grow-1 lrv-u-justify-content-center lrv-u-border-b-1 u-border-b-0@mobile-max lrv-u-border-color-grey-light lrv-u-padding-lr-2 lrv-u-padding-lr-1@mobile-max lrv-u-padding-tb-050@mobile-max")
+            billboard_songs = []
+            for i in range(hits):
+                song = songs[i].text.strip('\n')
+                song = song.strip('\t')
+                song = song.strip()
+                song = song.split('\t')[0]
+                if song_name == song:
+                    print('billboard song!')
+                #print(song)
+                billboard_songs.append(song)
+            #print(billboard_songs)
+            return 1
+        return 0
+
 main()
+
