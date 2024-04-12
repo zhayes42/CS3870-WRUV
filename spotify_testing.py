@@ -10,13 +10,14 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
 def main():
-    #token = spotify_connect()
+    token = spotify_connect()
     # note: Radiohead was in the example online, I did not think oh yes, Radiohead lol
     #print(get_genre_by_artist(token, 'Radiohead'))
     #print(spotify_search_song(token, 'Joni Mitchell', 'California'))
-    billboard_songs("beyonce", "Drunk In Love")
-    print(web_scrape_bb("faye webster"))
-    print(web_scrape_bb("beyonce"))
+    #billboard_songs("beyonce", "Drunk In Love")
+    #print(web_scrape_bb("faye webster"))
+    #print(web_scrape_bb("beyonce"))
+    spotify_search_song(token, "Taylor Swift", "Dress")
 
 # global variable for valid genres in spinitron
 GENRES = ['Rock',
@@ -96,6 +97,13 @@ def spotify_search_song(sp, artist_name, song_name):
         # stored in an array of length 1 containing a dictionary (key = audio feature, value = value of that feature)
         features = sp.audio_features(uri)
         result_string = f'TOP RESULT: {results_title} from {results_album} by {results_artist}. URI: {uri}'
+        return_val = {'danceability': features[0]['danceability'], 'energy': features[0]['energy'], 'key' : features[0]['energy'],
+                      'loudness': features[0]['loudness'], 'mode': features[0]['mode'], 'speechiness': features[0]['speechiness'],
+                      'acousticness': features[0]['acousticness'], 'instrumentalness': features[0]['instrumentalness'],
+                      'liveness': features[0]['liveness'], 'valence': features[0]['valence'], 'tempo': features[0]['tempo'],
+                      'duration_ms': features[0]['duration_ms']}
+        print(return_val)
+        print(features[0])
         return result_string
     result_string = f'the search for {song_name} by {artist_name} was not found'
     return result_string
